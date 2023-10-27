@@ -6,6 +6,11 @@ from api.model.Rebajas import Rebajas
 from api.model.Categorias import Categorias
 from typing import List
 from datetime import datetime
+from api.model.Clientes import Clientes
+from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_200_OK
+from typing import List
+from datetime import datetime
+
 pastel = APIRouter()
 
 
@@ -13,22 +18,10 @@ pastel = APIRouter()
 def root():
     return {"Bienvenida": "Hola :))"}
 
-
-@pastel.post("/api/configurarRebajas", status_code=HTTP_201_CREATED)
-def ConfigurarRebajas(dataRebaja: basePastel.BaseConfigurarRebajas):
-    pass
-
-
 @pastel.get("/api/verproductos", response_model=List[basePastel.BaseProductos])
 def VerProductos():
     pr = Productos()
     retorno = pr.verProductos()
-    return retorno
-
-@pastel.get("/api/verRebajas", response_model= List[basePastel.BaseConfigurarRebajas])
-def verRebajas():
-    r = Rebajas()
-    retorno = r.verRebajas()
     return retorno
 
 @pastel.get("/api/verCategorias", response_model=List[basePastel.BaseCategorias])
@@ -88,7 +81,64 @@ def BuscarPorCategoria(id:str):
     retorno = p.vercategoria1(id)
     return retorno
 
-@pastel.post("/api/CrearRebaja")
-def CrearRebaja(datar: basePastel.BaseConfigurarRebajas):
-    r = Rebajas()
+@pastel.get("/api/Buscarporidproducto/<id>", response_model=List[basePastel.Basevistproducto])
+def BuscarPoridProducto(id: str):
+    p = Productos()
+    retorno = p.BuscaridProducto(id)
+    return retorno
+
+@pastel.post("/api/CrearUsuario")
+def CrearUsuario(listau: basePastel.BaseUsuarios):
+    u = Usuarios()
+    c = Clientes()
+    tiempo = datetime.now()
+    horaActual = tiempo.strftime('%d/%m/%Y %H:%M:%S')
+    contra = generate_password_hash(listau.password, "pbkdf2:sha256:30", 30)
+    
+    u.ConstructorUsuario(0, listau.nombres, listau.correo,
+                         listau.apellidos, contra, horaActual, 2)
+    
+    c.ConstructorClientes(0, listau.nombres, listau.apellidos,"0", listau.correo, horaActual, "Credito")
+    
+    verificar = u.verificarSiexiste()
+    if verificar != HTTP_200_OK:
+        retorno = u.CrearUsuario()
+        retorno2 = c.CrearCliente()
+    else:
+        retorno = HTTP_400_BAD_REQUEST
+    
+    return Response(status_code=retorno)
+
+@pastel.get("/api/log/<correol><pasw>", response_model= basePastel.BasePerfil)
+def usuario(correol: str, pasw: str):
+    u = Usuarios()
+    u.ConstructorUsuario(0,"", correol,"", pasw, "", 0)
+    
+    retorno1 = u.autenticar()
+    if retorno1 != HTTP_400_BAD_REQUEST:
+        usuarioMenu = Menu()
+        retorno = usuarioMenu.buscarUsuario(correol)
+        return retorno
+    else:
+        return Response(status_code=retorno1)
+
+#INICIO CLIENTE 
+
+@pastel.get("/api/ListarClientes", response_model= List[basePastel.BaseCliente])
+def ListarClientes():
+    c = Clientes()
+    retorno = c.verClientes()
+    return retorno
+
+@pastel.get("/api/Listartipodocumento", response_model=List[basePastel.TipoDocumento])
+def ListarDocumentos():
+    c = Clientes()
+    retorno = c.verDocumento()
+    return retorno
+
+@pastel.get("/api/Listartipopago", response_model=List[basePastel.Tipopago])
+def ListartipoPago():
+    c = Clientes()
+    retorno = c.verTipoPago()
+    return retorno
     

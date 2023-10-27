@@ -18,5 +18,9 @@
         "titleBar.inactiveBackground": "#18034599",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#180345"
+    "peacock.color": "#180345",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python"
+    },
+    "python.formatting.provider": "none"
 }
