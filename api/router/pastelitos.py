@@ -4,12 +4,16 @@ from api.model.schemas import basePastel
 from api.model.Productos import Productos
 from api.model.Rebajas import Rebajas
 from api.model.Categorias import Categorias
+from api.model.Usuarios import Usuarios
+from api.model.Menu import Menu
 from typing import List
 from datetime import datetime
 from api.model.Clientes import Clientes
 from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_200_OK
 from typing import List
 from datetime import datetime
+from api.model.Compras import Compras
+from api.model.Pedidos import Pedidos
 
 pastel = APIRouter()
 
@@ -141,4 +145,61 @@ def ListartipoPago():
     c = Clientes()
     retorno = c.verTipoPago()
     return retorno
-    
+
+# CREANDO PEDIDOS
+
+
+@pastel.post("/api/crearPedido")
+def CrearPedido(datape: basePastel.baseCrearCompra):
+    co = Compras()
+    retorno = co.agregarcompra(datape.id, datape.nodocumento, datape.serie,
+                               datape.nombredocumento, datape.fechapedido, datape.estado,
+                               datape.idcliente, datape.tipodocumeto, datape.tipopago)
+
+    return Response(status_code=retorno)
+
+
+@pastel.post("/api/CrearPedidoDetalle")
+def CrearDetallePedido(datade: basePastel.baseCrearDetalleCompra):
+    co = Compras()
+    retorno = co.agregarDetalleCompra(datade.idpedido, datade.idproducto,
+                                      datade.cantidad, datade.preciounitario)
+    return Response(status_code=retorno)
+
+
+@pastel.get("/api/obtenerNodocumento", response_model=basePastel.basenodocumento)
+def obtenerNodocumento():
+    co = Compras()
+    retorno = co.SeleccionaNodocumento()
+    return retorno
+
+
+@pastel.get("/api/obteneridCliente/<correo>", response_model=basePastel.recolectaridC)
+def recolectaridC(correo: str):
+    c = Clientes()
+    retorno = c.seleccionaridCliente(correo)
+    return retorno
+
+
+@pastel.get("/api/seleccionaridpedido/<fecha>", response_model=basePastel.recolectaridpedido)
+def recolectaridpedido(fecha: str):
+    c = Compras()
+    print(fecha)
+    retorno = c.SeleccionaridPedido(fecha)
+    return retorno
+
+# VER MIS PEDIDOS
+
+
+@pastel.get("/api/vermispedidos/<correo>", response_model=List[basePastel.Mispedidos])
+def verpedidos(correo: str):
+    p = Pedidos()
+    retorno = p.verMispedidos(correo)
+    return retorno
+
+@pastel.get("/api/verEntregas", response_model=List[basePastel.BaseEntregas])
+def verEntregas():
+    p = Pedidos()
+    retorno = p.verEntregas()
+    return retorno
+
